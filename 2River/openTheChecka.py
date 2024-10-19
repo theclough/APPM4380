@@ -13,3 +13,8 @@ with open('river1.txt','r') as fp:
         xvals[count] = float(stuff[1])
         yvals[count] = float(stuff[2])
         count += 1
+
+with open('riverData.csv','w') as fp:
+    for ii in range(n-1):
+        line = str(xvals[ii])+','+str(yvals[ii])+'\n'
+        fp.write(line)
