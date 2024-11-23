@@ -56,8 +56,8 @@ def postProcess(csvFile,opt,n):
 
     return rVec
 
-def drift(price1,price2,t_i):
-# calcs drift as slope of line between start and current price
+def prevSlope(price1,price2,t_i):
+# calcs slope of line between price for interval (t_[i-1],t_i)
     
     return (price2 - price1)/t_i
 
@@ -128,8 +128,8 @@ def assetWalk(data,n,deltaT,vData):
     price0 = data[0]
     walk[0] = price0
     walk[1] = data[1]
-    #
     walk[2] = data[2]
+    correction = 0
 
 # walk accodring to formula
 #   calc mu, sigma
@@ -139,10 +139,14 @@ def assetWalk(data,n,deltaT,vData):
         # var = sigma(mu,data[ii])
         # drft = drift(data[ii-1],data[ii],ii*5)
         # walk[ii+1] = walk[ii] + drft*deltaT + math.sqrt(var*deltaT)*random.uniform(-1,1)
+        data1 = data[ii-1]; data2 = data[ii];
         mu1,mu2 = deltaMu(data[:ii])
-        dVar = deltaVar(mu1,mu2,data[ii-1],data[ii])
+        dVar = deltaVar(mu1,mu2,data1,data2)
         volFrac = vData[ii]/vData[ii-1]
-        walk[ii+1] = walk[ii] + (mu2-mu1)*random.uniform(0,volFrac) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
+        pSlope = prevSlope(data1,data2,deltaT)
+        # walk[ii+1] = walk[ii] + (mu2-mu1)*random.uniform(0,pSlope) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
+        # walk[ii+1] = walk[ii] + (mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
+        walk[ii+1] = walk[ii] + (mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac))
     
     return walk
 
