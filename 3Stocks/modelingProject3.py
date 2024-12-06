@@ -39,7 +39,7 @@ def postProcess(csvFile,opt,n):
     # initialize return vector
 
     for ii,line in zip(range(n),priceData):
-        _,op,hi,lo,cl,vol = line.strip().split(',')
+        _,_,op,hi,lo,cl,vol,_,_ = line.strip().split(',')
         if opt == 1:
             rVec[ii] = op
         elif opt == 2:
@@ -145,8 +145,9 @@ def assetWalk(data,n,deltaT,vData):
         volFrac = vData[ii]/vData[ii-1]
         pSlope = prevSlope(data1,data2,deltaT)
         # walk[ii+1] = walk[ii] + (mu2-mu1)*random.uniform(0,pSlope) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
+        walk[ii+1] = walk[ii] + (mu2-mu1)*pSlope*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*volFrac*random.uniform(0,1)
         # walk[ii+1] = walk[ii] + (mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
-        walk[ii+1] = walk[ii] + (mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac))
+        # walk[ii+1] = walk[ii] + (mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
     
     return walk
 
@@ -161,8 +162,9 @@ def driver():
     deltaT = 5
     times = np.array(range(0,n*5,5))
     # units [min]
-    openPrices = postProcess('5min.csv',1,n)
-    volumes = postProcess('5min.csv',5,n)
+    filename = "BTCDailyData.csv"
+    openPrices = postProcess(filename,1,n)
+    volumes = postProcess(filename,5,n)
     for num in [100,250,500,700]:
         for sims in range(10):
             walk = assetWalk(openPrices,num,deltaT,volumes)
