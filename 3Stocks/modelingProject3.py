@@ -5,6 +5,30 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 
+def driver():
+    n = 700
+    deltaT = 5
+    times = np.array(range(0,n*5,5))
+    # units [min]
+    filename = "BTCDailyData.csv"
+    openPrices = postProcess(filename,1,n)
+    volumes = postProcess(filename,5,n)
+    for num in [100,250,500,700]:
+        for sims in range(10):
+            walk = assetWalk(openPrices,num,deltaT,volumes)
+            # if sims == 0:
+            # # initialize walkMin
+            #     best = walk
+            # else:
+            #     if best[-1] > walk[-1]:
+            #         best = walk
+            plt.plot(times[:num],walk,'b-')
+        plt.plot(times[:num],openPrices[:num],'g-')
+        plt.xlabel('t [min]')
+        plt.ylabel('BTC ($)')
+        plt.title('1st '+str(num)+' Data Points')
+        plt.show()
+
 def data2Array(csvFile,n):
 # Inputs:
 #     csvFile :   name of .csv file with Bitcoin data in 5 min intervals
@@ -144,8 +168,10 @@ def assetWalk(data,n,deltaT,vData):
         dVar = deltaVar(mu1,mu2,data1,data2)
         volFrac = vData[ii]/vData[ii-1]
         pSlope = prevSlope(data1,data2,deltaT)
+        sigma = 0.1 # include function that calculates or just
+        
         # walk[ii+1] = walk[ii] + (mu2-mu1)*random.uniform(0,pSlope) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
-        walk[ii+1] = walk[ii] + (mu2-mu1)*pSlope*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*volFrac*random.uniform(0,1)
+        walk[ii+1] = walk[ii] + (mu2-mu1)*pSlope*volFrac*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*0.1*random.uniform(0,1)
         # walk[ii+1] = walk[ii] + (mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
         # walk[ii+1] = walk[ii] + (mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
     
@@ -156,29 +182,5 @@ def sign(num):
 
     return num/abs(num)
 
-    
-def driver():
-    n = 700
-    deltaT = 5
-    times = np.array(range(0,n*5,5))
-    # units [min]
-    filename = "BTCDailyData.csv"
-    openPrices = postProcess(filename,1,n)
-    volumes = postProcess(filename,5,n)
-    for num in [100,250,500,700]:
-        for sims in range(10):
-            walk = assetWalk(openPrices,num,deltaT,volumes)
-            # if sims == 0:
-            # # initialize walkMin
-            #     best = walk
-            # else:
-            #     if best[-1] > walk[-1]:
-            #         best = walk
-            plt.plot(times[:num],walk,'b-')
-        plt.plot(times[:num],openPrices[:num],'g-')
-        plt.xlabel('t [min]')
-        plt.ylabel('BTC ($)')
-        plt.title('1st '+str(num)+' Data Points')
-        plt.show()
 
 driver()
