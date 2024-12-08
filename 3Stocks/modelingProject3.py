@@ -85,6 +85,19 @@ def prevSlope(price1,price2,t_i):
     
     return (price2 - price1)/t_i
 
+def concavity(priceData):
+
+    # calcuate prev 2 slopes
+    
+
+    # calculate concavity
+
+    # concavity (+) & slope (+) = (+)
+    # concavity (-) & slope (+) = (-)
+    # concavity (+) & slope (-) = (+)
+    # concavity (-) & slope (-) = (-)
+    
+
 def mean(priceData):
 # Inputs:
 #     priceData   :   vector of all prices up to time t_i
@@ -103,16 +116,18 @@ def deltaMu(priceData):
 # Inputs:
 #     priceData   :   vector of all prices up to time t_i
 # Output:
-#                 :   delta mean btween time t_[i-1] & t_i
+#     mu1, mu2    :   TBD
     
-    ct = 0
-    sum = 0
-    for price in priceData:
-        ct += 1
-        sum += price
+    # ct = 0
+    # sum = 0
+    # for price in priceData:
+    #     ct += 1
+    #     sum += price
 
-    mu1 = (sum-priceData[-1])/(ct-1)
-    mu2 = sum/ct
+    # mu1 = (sum-priceData[-1])/(ct-1)
+    # mu2 = sum/ct
+
+    
 
     return mu1,mu2
 
