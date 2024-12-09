@@ -9,7 +9,7 @@ def driver():
     n = 700
     deltaT = 5
     times = np.array(range(0,n*5,5))
-    # units [min]
+    units = 'day'
     filename = "BTCDailyData.csv"
     openPrices = postProcess(filename,1,n)
     volumes = postProcess(filename,5,n)
@@ -24,7 +24,7 @@ def driver():
             #         best = walk
             plt.plot(times[:num],walk,'b-')
         plt.plot(times[:num],openPrices[:num],'g-')
-        plt.xlabel('t [min]')
+        plt.xlabel('t ['+units+']')
         plt.ylabel('BTC ($)')
         plt.title('1st '+str(num)+' Data Points')
         plt.show()
@@ -86,16 +86,36 @@ def prevSlope(price1,price2,t_i):
     return (price2 - price1)/t_i
 
 def concavity(priceData):
+# return:
+#     +1 if both previous slopes > 0
+#     +0.5 if first > 0 and second < 0        
+#     -0.5 if first < 0 and second > 0
+#     -1 if both previous slopes < 0
+#     random value (-0.2,0.2) if either == 0
+
+    cine = 1
 
     # calcuate prev 2 slopes
-    
+    d1 = priceData[-1] - priceData[-2]
+    d2 = priceData[-2] - priceData[-3]
 
     # calculate concavity
+    if d1 < 0:
+        if d2 > 0:
+            cine = -0.5
+        elif d2 < 0:
+            cine = -1
+        else:
+            return random.random(-0.2,0.2)
+    elif d1 > 0:
+        if d2 < 0:
+            cine = 0.5
+    else:
+        return random.random(-0.2,0.2)
 
-    # concavity (+) & slope (+) = (+)
-    # concavity (-) & slope (+) = (-)
-    # concavity (+) & slope (-) = (+)
-    # concavity (-) & slope (-) = (-)
+    return cine
+        
+
     
 
 def mean(priceData):
@@ -118,16 +138,14 @@ def deltaMu(priceData):
 # Output:
 #     mu1, mu2    :   TBD
     
-    # ct = 0
-    # sum = 0
-    # for price in priceData:
-    #     ct += 1
-    #     sum += price
+    ct = 0
+    sum = 0
+    for price in priceData:
+        ct += 1
+        sum += price
 
-    # mu1 = (sum-priceData[-1])/(ct-1)
-    # mu2 = sum/ct
-
-    
+    mu1 = (sum-priceData[-1])/(ct-1)
+    mu2 = sum/ct
 
     return mu1,mu2
 
@@ -186,11 +204,15 @@ def assetWalk(data,n,deltaT,vData):
         sigma = 0.1 # include function that calculates or just
         
         # walk[ii+1] = walk[ii] + (mu2-mu1)*random.uniform(0,pSlope) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
-        walk[ii+1] = walk[ii] + (mu2-mu1)*pSlope*volFrac*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*0.1*random.uniform(0,1)
+        walk[ii+1] = walk[ii] + (mu2-mu1)*volFrac*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,0.2)
+#        walk[ii+1] = data[ii] + (mu2-mu1)*volFrac*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,0.2)
         # walk[ii+1] = walk[ii] + (mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
         # walk[ii+1] = walk[ii] + (mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
     
     return walk
+
+def openClose(walk,data)
+
 
 def sign(num):
 # returns sign of number
