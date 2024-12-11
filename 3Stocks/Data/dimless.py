@@ -54,9 +54,8 @@ def dataManip(l,tInt,opens,highs,lows,closes,volumes,trades):
 
     maxVol = -1; maxTrade = -1
     volatilitys = np.zeros(l)
-    pSlopes = np.zeros(l-1)
-    concavitys = np.zeros(l-2)
-    volFracs = np.zeros(l-1); tradeFracs = np.zeros(l-1)
+    # pSlopes = np.zeros(l-1)
+    # concavitys = np.zeros(l-2)
     for ii in range(l):
         vol = volumes[ii]
         trade = trades[ii]
@@ -65,46 +64,50 @@ def dataManip(l,tInt,opens,highs,lows,closes,volumes,trades):
             maxVol = vol
         if maxTrade < trade:
             maxTrade = trade
-        if ii != 0:
-            volFracs[ii-1] = volumes[ii]/volumes[ii-1]
-            tradeFracs[ii-1] = trades[ii]/trades[ii-1]
-            pAvgVal = 0.5*(opens[ii-1]+closes[ii-1])
-            pSlopes[ii-1] = abs(avgVal - pAvgVal)
-            if ii != 1:
-                concavitys[ii-2] = (pSlopes[ii-1]-pSlopes[ii-2])#/tInt
+        # if ii != 0:
+        #     volFracs[ii-1] = volumes[ii]/volumes[ii-1]
+        #     tradeFracs[ii-1] = trades[ii]/trades[ii-1]
+        #     pAvgVal = 0.5*(opens[ii-1]+closes[ii-1])
+        #     pSlopes[ii-1] = abs(avgVal - pAvgVal)
+        #     if ii != 1:
+        #         concavitys[ii-2] = (pSlopes[ii-1]-pSlopes[ii-2])
         volatilitys[ii] = (highs[ii]-lows[ii])/avgVal
     volFracsMax = volumes/maxVol
     tradeFracsMax = trades/maxTrade
     
-    # # plot stuff
-    # plt.plot(tradeFracsMax,volatilitys,'bo',markersize=1)
+    # plot stuff
+    # plt.plot(volFracsMax,volatilitys,'bo',markersize=1)
     # plt.show()
-    # plt.semilogx(tradeFracsMax,volatilitys,'bo',markersize=1)
+    # plt.semilogx(volFracsMax,volatilitys,'bo',markersize=1)
     # plt.show()
-    # plt.semilogy(tradeFracsMax,volatilitys,'bo',markersize=1)
+    # plt.semilogy(volFracsMax,volatilitys,'bo',markersize=1)
     # plt.show()
-    # plt.loglog(tradeFracsMax,volatilitys,'bo',markersize=1)
-    # plt.show()
-
+    plt.loglog(volFracsMax,volatilitys,'bo',markersize=2)
+    plt.xlabel('defined volatility []')
+    plt.ylabel('volume fraction []')
+    plt.savefig('DimlessVolFracs.png')
+    
     # testX = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
     # print(testX.shape)
     # return
 
-    # # best so far
-    # X = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
-    # y = np.log(volatilitys)
-    # linFit = LinearRegression().fit(X,y)
-    # print(linFit.score(X,y))
-    # print(linFit.coef_)
-    # print(linFit.intercept_)    
-
-    # testing
+    # best so far
     X = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
-    y = np.log(volatilitys)#/volatilitys[:-1])
+    y = np.log(volatilitys)
     linFit = LinearRegression().fit(X,y)
     print(linFit.score(X,y))
     print(linFit.coef_)
-    print(linFit.intercept_) 
+    print(linFit.intercept_)
+
+    
+
+    # testing
+    # X = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
+    # y = np.log(volatilitys)#/volatilitys[:-1])
+    # linFit = LinearRegression().fit(X,y)
+    # print(linFit.score(X,y))
+    # print(linFit.coef_)
+    # print(linFit.intercept_) 
 
 
 def volFracsTesting(volFracs,volFracsMax,volatilitys):

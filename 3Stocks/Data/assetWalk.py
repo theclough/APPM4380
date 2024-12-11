@@ -7,27 +7,25 @@ def driver():
 
     times = {'min': 1, 'day': 1440, 'year': 525600}
     tInt = times['day']
-    opens, closes, volFracsMax, tradeFracsMax, n = initialize('BTCDay.csv',tInt)
-    xVals = list(range(n))
+    opens, closes, volumes, trades, n = initialize('BTCDay.csv',tInt)
+    xVals = list(range(n-2))
+    walkAverages = np.zeros(n-2)
+    nSims = 10
 
-    for sims in range(10):
-        walk = assetWalk(opens,closes,volFracsMax,tradeFracsMax,n)
-        # if sims == 0:
-        # # initialize walkMin
-        #     best = walk
-        # else:
-        #     if best[-1] > walk[-1]:
-        #         best = walk
-        plt.plot(xVals,walk,'b-')
-    plt.plot(xVals,closes[1:],'g-')
+    for sims in range(nSims):
+        walk = assistedWalk(opens,closes,volumes,trades,n)
+        plt.plot(xVals,walk[2:],'bo',markersize=5)
+        walkAverages += walk[2:]
+    walkAverages = walkAverages/nSims
+    plt.plot(xVals,closes[2:],'go',markersize=3)
     plt.xlabel('t [day]')
     plt.ylabel('BTC ($)')
     # plt.title('1st '+str(num)+' Data Points')
     plt.show()
-    errors = walk - closes[1:]
-    plt.bar(range(n),errors)
+    errors = walkAverages - closes[2:]
+    plt.bar(range(n-2),errors)
     plt.show()
-    plt.bar(range(n),errors/closes[1:])
+    plt.bar(range(n-2),errors/closes[2:])
     plt.show()
 
     return
@@ -81,7 +79,7 @@ def initialize(filename, tInt):
     opens = np.zeros(l)
     highs = np.zeros(l)
     lows = np.zeros(l)
-    closes = np.zeros(l+1)
+    closes = np.zeros(l)
     volumes = np.zeros(l)
     trades = np.zeros(l)
     for stuff,ii in zip(data,range(l)):
@@ -89,13 +87,12 @@ def initialize(filename, tInt):
         opens[ii] = float(dataPt[2])
         highs[ii] = float(dataPt[3])
         lows[ii] = float(dataPt[4])
-        closes[ii+1] = float(dataPt[5])
+        closes[ii] = float(dataPt[5])
         volumes[ii] = float(dataPt[6])
         trades[ii] = int(dataPt[7].split('.')[0])
-    closes[0] = opens[0]
     
-    volFracsMax, tradeFracsMax = dataCreator(l,opens,highs,lows,closes,volumes,trades)
-    return opens, closes, volFracsMax, tradeFracsMax, l
+    # volFracsMax, tradeFracsMax = dataCreator(l,opens,highs,lows,closes,volumes,trades)
+    return opens, closes, volumes, trades, l
 
 def deltaMu(priceData):
 # Inputs:
@@ -117,7 +114,7 @@ def deltaMu(priceData):
 def deltaVar(mu1,mu2,P1,P2):
 # Inputs:
 #     mu1,mu2     :   means at t_[i-1],t_i
-#     P1,P2       :   prices at t_[i-1],t_i
+#     P1,P2       :   closes at t_[i-1],t_i
 # Output:
 #     dVar        :   delta variance btween time t_[i-1] & t_i
 
@@ -133,10 +130,29 @@ def volatility(vFMax,tFMax):
 # Output:
 #     volty   :   volatility from linear regression in dimless.py
 
-    return math.e**(-1.99539)*(vFMax**(0.24023))*(tFMax**(0.24198))
+    # params from dimless.py
+    a = -1.994662813486828
+    b = 0.24080293
+    c = 0.24266584
+    return math.e**(a)*(vFMax**(b))*(tFMax**(c))
 
-def assetWalk(opens,closes,volFracsMax,tradeFracsMax,n):
-# predicts given open price of session
+def signVal(opens,close):
+# calculates sign of change for walk
+
+    pSlope = opens[1] - close
+    ppSlope = close - opens[0]
+    if pSlope*ppSlope > 0:
+        if pSlope < 0:
+            cine = -1#abs(pSlope)/ppSlope
+        cine = 1#pSlope/ppSlope
+    else:
+        cine = -1#abs(pSlope/ppSlope)
+
+    return cine
+        
+
+def assistedWalk(opens,closes,volumes,trades,n):
+# predicts given close prices of session
 # Inputs:
 #     averagePrices   :   np.array with bitcoin data pts = 0.5(open+close)
 #     voFracsMax      :   np.array with volume data pts = volume[ii]/maxVolume
@@ -144,45 +160,36 @@ def assetWalk(opens,closes,volFracsMax,tradeFracsMax,n):
 #     n               :   length of data (bc already have)
 # Outputs:
 #     walk            :   predicted values of asset using random walk
-
-# walk[ii+1] = open[ii] + calc stuff
-
-    walk = np.zeros(n-1)
-    # starts at 2nd session so enough to calc. parameters
-    walk[0] = opens[0]
-
-# walk accodring to formula
+    
+    walk = np.zeros(n)
     volMax = volumes[0]
     tMax = trades[0]
-    for ii in range(1,n):
-        vol = volumes[ii]; trade = trades[ii];
+    for ii in range(2,n):
+    # ith session = predict ith close
+    # get open[ii], volumes[:ii], trades[:ii], closes[:ii]
+        vol = volumes[ii-1]; trade = trades[ii-1];
         if volMax < volumes[ii]:
             volMax = vol
         if tMax < trade:
             tMax = trade
-'''
-    cal maxes as go along rather than volFracsMAx and tFracsMax arrays
-'''
-        data1 = closes[ii-1]; data2 = opens[ii];
-        mu1,mu2 = deltaMu(closes[:ii-1].append(opens[ii]))
+        data1 = closes[ii-2]; data2 = closes[ii-1];
+        mu1,mu2 = deltaMu(closes[:ii])
         dVar = deltaVar(mu1,mu2,data1,data2)
-        # volFrac = vData[ii]/vData[ii-1]
-        # pSlope = prevSlope(data1,data2,deltaT)
-        sigma = volatility(volFracsMax[ii],tradeFracsMax[ii])
-        
-        # walk[ii+1] = walk[ii] + (mu2-mu1)*random.uniform(0,pSlope) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
-        '''
-        make walk[ii+1] = open[ii] + stuff
-        '''
-        value = (mu2-mu1)*volFracsMax[ii]*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,1)
-        if abs(value/walk[ii]) >= sigma:
-            walk[ii+1] = (1+sigma)*opens[ii]
+        sigma = volatility(vol/volMax,trade/tMax)
+        cine = signVal(opens[ii-1:ii+1],closes[ii-1])
+        # calculates sign of change as 
+        value = abs((mu2-mu1)*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,1))
+        if value/opens[ii] >= sigma:
+            walk[ii] = (1+sigma)*opens[ii]
         else:
-            walk[ii+1] = opens[ii] + (mu2-mu1)*volFracsMax[ii]*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,1)
-#        walk[ii+1] = data[ii] + (mu2-mu1)*volFrac*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,0.2)
-        # walk[ii+1] = walk[ii] + (mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
-        # walk[ii+1] = walk[ii] + (mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,volFrac)
+            walk[ii] = opens[ii] + value*cine
     
     return walk
+
+def dummyTest(opens,closes):
+
+    open
+
+    return
 
 driver()
