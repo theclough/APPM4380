@@ -8,16 +8,13 @@ from sklearn.linear_model import LinearRegression
 
 def driver():
 
-    times = {'min': 1, 'day': 1440, 'year': 525600}
-    tInt = times['day']
-    l,xVals,opens,highs,lows,closes,volumes,trades = initialize('BTCDay.csv',tInt)
+    l,xVals,opens,highs,lows,closes,volumes = initialize('BTCMin.csv','min')
     # picOfAllData(l, xVals, highs, lows, opens, closes)
-    dataManip(l,tInt,opens,highs,lows,closes,volumes,trades)
-
-    return
+    dataManip(l,opens,highs,lows,closes,volumes)
 
 def initialize(filename, tInt):
     
+    times = {'min': 1, 'day': 1440, 'year': 525600}
     '''
     labels: 
     [symbol,timestamp,open,high,low,close,volume,trade_count,vwap]
@@ -32,7 +29,6 @@ def initialize(filename, tInt):
     lows = np.zeros(l)
     closes = np.zeros(l+1)
     volumes = np.zeros(l)
-    trades = np.zeros(l)
     for stuff,ii in zip(data,range(l)):
         dataPt = stuff.strip('\n').split(',')
         opens[ii] = float(dataPt[2])
@@ -40,74 +36,39 @@ def initialize(filename, tInt):
         lows[ii] = float(dataPt[4])
         closes[ii+1] = float(dataPt[5])
         volumes[ii] = float(dataPt[6])
-        trades[ii] = int(dataPt[7].split('.')[0])
     closes[0] = opens[0]
     
-    return l,xVals,opens,highs,lows,closes,volumes,trades
+    return l,xVals,opens,highs,lows,closes,volumes
 
-def dataManip(l,tInt,opens,highs,lows,closes,volumes,trades):
+def dataManip(l,opens,highs,lows,closes,volumes):
 # Inputs:
 #     various np.array()s of data
 # Outputs:
 #     volFracs    :   size (l-1)    - volume[session]/maxVolume
 #     volatilitys :   size (l)      - volatility[session] calculated as (high-low)/avg price = 2*(high-low)/(open+close)
 
-    maxVol = -1; maxTrade = -1
+    maxVol = -1
     volatilitys = np.zeros(l)
-    pSlopes = np.zeros(l-1)
-    concavitys = np.zeros(l-2)
-    volFracs = np.zeros(l-1); tradeFracs = np.zeros(l-1)
+    volFracs = np.zeros(l-1)
     for ii in range(l):
         vol = volumes[ii]
-        trade = trades[ii]
-        avgVal = 0.5*(opens[ii]+closes[ii])
         if maxVol < vol:
             maxVol = vol
-        if maxTrade < trade:
-            maxTrade = trade
         if ii != 0:
             volFracs[ii-1] = volumes[ii]/volumes[ii-1]
-            tradeFracs[ii-1] = trades[ii]/trades[ii-1]
-            pAvgVal = 0.5*(opens[ii-1]+closes[ii-1])
-            pSlopes[ii-1] = abs(avgVal - pAvgVal)
-            if ii != 1:
-                concavitys[ii-2] = (pSlopes[ii-1]-pSlopes[ii-2])#/tInt
-        volatilitys[ii] = (highs[ii]-lows[ii])/avgVal
+        volatilitys[ii] = 2.*(highs[ii]-lows[ii])/(opens[ii]+closes[ii])
     volFracsMax = volumes/maxVol
-    tradeFracsMax = trades/maxTrade
-    
+
     # # plot stuff
-    # plt.plot(tradeFracsMax,volatilitys,'bo',markersize=1)
+    # plt.plot(volFracs,volatilitys[1:],'bo',markersize=1)
     # plt.show()
-    # plt.semilogx(tradeFracsMax,volatilitys,'bo',markersize=1)
+    # plt.semilogx(volFracs,volatilitys[1:],'bo',markersize=1)
     # plt.show()
-    # plt.semilogy(tradeFracsMax,volatilitys,'bo',markersize=1)
+    # plt.semilogy(volFracs,volatilitys[1:],'bo',markersize=1)
     # plt.show()
-    # plt.loglog(tradeFracsMax,volatilitys,'bo',markersize=1)
+    # plt.loglog(volFracs,volatilitys[1:],'bo',markersize=1)
     # plt.show()
 
-    # testX = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
-    # print(testX.shape)
-    # return
-
-    # # best so far
-    # X = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
-    # y = np.log(volatilitys)
-    # linFit = LinearRegression().fit(X,y)
-    # print(linFit.score(X,y))
-    # print(linFit.coef_)
-    # print(linFit.intercept_)    
-
-    # testing
-    X = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
-    y = np.log(volatilitys)#/volatilitys[:-1])
-    linFit = LinearRegression().fit(X,y)
-    print(linFit.score(X,y))
-    print(linFit.coef_)
-    print(linFit.intercept_) 
-
-
-def volFracsTesting(volFracs,volFracsMax,volatilitys):
     # volFracsMax vs volatility in session
     X = np.log(volFracsMax).reshape(-1,1)
     y = np.log(volatilitys)
@@ -137,7 +98,7 @@ def volFracsTesting(volFracs,volFracsMax,volatilitys):
     print(linFit.intercept_)
 
     print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=')
-
+    
     # volFracs vs volatility in previous session
     X = np.log(volFracs).reshape(-1,1)
     y = np.log(volatilitys[:-1])
@@ -145,19 +106,19 @@ def volFracsTesting(volFracs,volFracsMax,volatilitys):
     print(linFit.score(X,y))
     print(linFit.coef_)
     print(linFit.intercept_)
+    
 
+    # # volFracs vs volatility in session
+    # X = np.log(volFracs).reshape(-1,1)
+    # linFit = LinearRegression().fit(X,np.log(volatilitys[1:]))
+    # print(linFit.score(X,np.log(volatilitys[1:])))
+    # print(linFit.coef_)
+    # print(linFit.intercept_)     
 
-# # volFracs vs volatility in session
-# X = np.log(volFracs).reshape(-1,1)
-# linFit = LinearRegression().fit(X,np.log(volatilitys[1:]))
-# print(linFit.score(X,np.log(volatilitys[1:])))
-# print(linFit.coef_)
-# print(linFit.intercept_)     
-
-# reg = linFit.coef_*volFracs + linFit.intercept_
-# plt.plot(range(l),volatilitys,'go',markersize=2)
-# plt.plot(range(l),reg,'bo',markersize=1)
-# plt.show()
+    # reg = linFit.coef_*volFracs + linFit.intercept_
+    # plt.plot(range(l),volatilitys,'go',markersize=2)
+    # plt.plot(range(l),reg,'bo',markersize=1)
+    # plt.show()
 
 
 def picOfAllData(l,xVals,highs,lows,opens,closes):

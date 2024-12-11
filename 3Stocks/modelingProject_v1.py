@@ -114,9 +114,7 @@ def concavity(priceData):
         return random.random(-0.2,0.2)
 
     return cine
-        
 
-    
 
 def mean(priceData):
 # Inputs:
@@ -164,7 +162,7 @@ def deltaVar(mu1,mu2,P1,P2):
 #     mu1,mu2     :   means at t_[i-1],t_i
 #     P1,P2       :   prices at t_[i-1],t_i
 # Output:
-#                 :   delta var btween time t_[i-1] & t_i
+#     dVar        :   delta var btween time t_[i-1] & t_i
 
     dVar = (mu2-mu1)*(mu2+mu1) + 2.*(mu1*P1-mu2*P2) + (P2-P1)*(P2+P1)
     # = (m2-S2)**2 - (m1-S1)**2
