@@ -82,22 +82,22 @@ def dataManip(l,tInt,opens,highs,lows,closes,volumes,trades):
     # plt.show()
     # plt.semilogy(volFracsMax,volatilitys,'bo',markersize=1)
     # plt.show()
-    plt.loglog(volFracsMax,volatilitys,'bo',markersize=2)
-    plt.xlabel('defined volatility []')
-    plt.ylabel('volume fraction []')
-    plt.savefig('DimlessVolFracs.png')
+    plt.loglog(tradeFracsMax,volatilitys,'bo',markersize=2)
+    plt.xlabel('trade ct fraction []')
+    plt.ylabel('defined volatility []')
+    plt.savefig('DimlessTradeFracs.png')
     
     # testX = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
     # print(testX.shape)
     # return
 
     # best so far
-    X = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
-    y = np.log(volatilitys)
-    linFit = LinearRegression().fit(X,y)
-    print(linFit.score(X,y))
-    print(linFit.coef_)
-    print(linFit.intercept_)
+    # X = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
+    # y = np.log(volatilitys)
+    # linFit = LinearRegression().fit(X,y)
+    # print(linFit.score(X,y))
+    # print(linFit.coef_)
+    # print(linFit.intercept_)
 
     
 

@@ -14,19 +14,34 @@ def driver():
 
     for sims in range(nSims):
         walk = assistedWalk(opens,closes,volumes,trades,n)
-        plt.plot(xVals,walk[2:],'bo',markersize=5)
+        plt.plot(xVals,walk[2:],'b-',markersize=2)
         walkAverages += walk[2:]
     walkAverages = walkAverages/nSims
-    plt.plot(xVals,closes[2:],'go',markersize=3)
+    plt.plot(xVals,closes[2:],'g-',markersize=3)
     plt.xlabel('t [day]')
     plt.ylabel('BTC ($)')
     # plt.title('1st '+str(num)+' Data Points')
-    plt.show()
+    plt.savefig('walk.png',bbox_inches='tight',pad_inches=0.1)
+    plt.clf()
     errors = walkAverages - closes[2:]
-    plt.bar(range(n-2),errors)
-    plt.show()
-    plt.bar(range(n-2),errors/closes[2:])
-    plt.show()
+    posErrors = np.zeros(n-2); negErrors = np.zeros(n-2);
+    for ii in range(n-2):
+        error = errors[ii]
+        if error >= 0:
+            posErrors[ii] = error
+        else:
+            negErrors[ii] = error
+    plt.bar(range(n-2),posErrors,color='green')
+    plt.bar(range(n-2),negErrors,color='red')
+    plt.xlabel('t [day]')
+    plt.ylabel('Absolute Error [$]')
+    plt.savefig('absErrorWalk.png',bbox_inches='tight',pad_inches=0.1)
+    plt.clf()
+    plt.bar(range(n-2),posErrors/closes[2:],color='green')
+    plt.bar(range(n-2),negErrors/closes[2:],color='red')
+    plt.xlabel('t [day]')
+    plt.ylabel('Relative Error [%]') 
+    plt.savefig('relErrorWalk.png',bbox_inches='tight',pad_inches=0.1)
 
     return
 
@@ -178,18 +193,15 @@ def assistedWalk(opens,closes,volumes,trades,n):
         sigma = volatility(vol/volMax,trade/tMax)
         cine = signVal(opens[ii-1:ii+1],closes[ii-1])
         # calculates sign of change as 
-        value = abs((mu2-mu1)*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,1))
+        value = (mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,1)
+        # value = abs((mu2-mu1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,1))
+        # value = abs((mu2-mu1)*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,1))
+        # value = (mu2-mu1)*random.uniform(0,1) + dVar/math.sqrt(abs(dVar))*random.uniform(0,1)
         if value/opens[ii] >= sigma:
             walk[ii] = (1+sigma)*opens[ii]
         else:
-            walk[ii] = opens[ii] + value*cine
+            walk[ii] = opens[ii] + value#*cine
     
     return walk
-
-def dummyTest(opens,closes):
-
-    open
-
-    return
 
 driver()
