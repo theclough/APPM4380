@@ -9,39 +9,45 @@ def driver():
     tInt = times['day']
     opens, closes, volumes, trades, n = initialize('BTCDay.csv',tInt)
     xVals = list(range(n-2))
-    walkAverages = np.zeros(n-2)
-    nSims = 10
-
-    for sims in range(nSims):
-        walk = assistedWalk(opens,closes,volumes,trades,n)
-        plt.plot(xVals,walk[2:],'b-',markersize=2)
-        walkAverages += walk[2:]
-    walkAverages = walkAverages/nSims
-    plt.plot(xVals,closes[2:],'g-',markersize=3)
-    plt.xlabel('t [day]')
-    plt.ylabel('BTC ($)')
-    # plt.title('1st '+str(num)+' Data Points')
-    plt.savefig('walk.png',bbox_inches='tight',pad_inches=0.1)
-    plt.clf()
-    errors = walkAverages - closes[2:]
-    posErrors = np.zeros(n-2); negErrors = np.zeros(n-2);
-    for ii in range(n-2):
-        error = errors[ii]
-        if error >= 0:
-            posErrors[ii] = error
-        else:
-            negErrors[ii] = error
-    plt.bar(range(n-2),posErrors,color='green')
-    plt.bar(range(n-2),negErrors,color='red')
-    plt.xlabel('t [day]')
-    plt.ylabel('Absolute Error [$]')
-    plt.savefig('absErrorWalk.png',bbox_inches='tight',pad_inches=0.1)
-    plt.clf()
-    plt.bar(range(n-2),posErrors/closes[2:],color='green')
-    plt.bar(range(n-2),negErrors/closes[2:],color='red')
-    plt.xlabel('t [day]')
-    plt.ylabel('Relative Error [%]') 
-    plt.savefig('relErrorWalk.png',bbox_inches='tight',pad_inches=0.1)
+    closeVals = closes[2:]
+    # walkAverages = np.zeros(n-2)
+    # nSims = 10
+    for nSims in [250,500]:
+        walkAverages = np.zeros(n-2)
+        for sims in range(nSims):
+            walk = assistedWalk(opens,closes,volumes,trades,n)
+            # plt.plot(xVals,walk[2:],'b-',markersize=2)
+            walkAverages += walk[2:]
+        walkAverages = walkAverages/nSims
+        # plt.plot(xVals,walkAverages,'b-',markersize=2)
+        # plt.plot(xVals,closes[2:],'g-',markersize=2)
+        # plt.xlabel('t [day]')
+        # plt.ylabel('BTC ($)')
+        # plt.show()
+        # # plt.title('1st '+str(num)+' Data Points')
+        # # plt.savefig('walk.png',bbox_inches='tight',pad_inches=0.1)
+        # plt.clf()
+        errors = walkAverages - closeVals
+        posErrors = np.zeros(n-2); negErrors = np.zeros(n-2);
+        for ii in range(n-2):
+            error = errors[ii]
+            if error >= 0:
+                posErrors[ii] = error
+            else:
+                negErrors[ii] = error
+        # plt.bar(range(n-2),posErrors,color='green')
+        # plt.bar(range(n-2),negErrors,color='red')
+        # plt.xlabel('t [day]')
+        # plt.ylabel('Absolute Error [$]')
+        # plt.show()
+        # plt.savefig('absErrorWalk.png',bbox_inches='tight',pad_inches=0.1)
+        # plt.clf()
+        plt.bar(range(n-2),posErrors/closeVals,color='green')
+        plt.bar(range(n-2),negErrors/closeVals,color='red')
+        plt.xlabel('t [day]')
+        plt.ylabel('Relative Error [%]') 
+        # plt.savefig('relErrorWalk.png',bbox_inches='tight',pad_inches=0.1)
+        plt.show()
 
     return
 
