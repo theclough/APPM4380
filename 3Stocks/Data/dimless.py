@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
+# from sklearn.linear_model import LinearRegression
 
 '''
     for ALL slopes, numerator is in MINUTES
@@ -82,11 +82,10 @@ def dataManip(l,tInt,opens,highs,lows,closes,volumes,trades):
     # plt.show()
     # plt.semilogy(volFracsMax,volatilitys,'bo',markersize=1)
     # plt.show()
-    plt.loglog(tradeFracsMax,volatilitys,'bo',markersize=2)
-    plt.xlabel('trade ct []')
+    plt.loglog(volFracsMax,volatilitys,'bo',markersize=2)
+    plt.xlabel('volume []')
     plt.ylabel('volatility []')
-
-    plt.savefig('dimlessTC.png')
+    plt.savefig('dimlessVol.png')
     
     # testX = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
     # print(testX.shape)
@@ -99,8 +98,6 @@ def dataManip(l,tInt,opens,highs,lows,closes,volumes,trades):
     # print(linFit.score(X,y))
     # print(linFit.coef_)
     # print(linFit.intercept_)
-
-    
 
     # testing
     # X = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
