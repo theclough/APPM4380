@@ -83,9 +83,10 @@ def dataManip(l,tInt,opens,highs,lows,closes,volumes,trades):
     # plt.semilogy(volFracsMax,volatilitys,'bo',markersize=1)
     # plt.show()
     plt.loglog(tradeFracsMax,volatilitys,'bo',markersize=2)
-    plt.xlabel('trade ct fraction []')
-    plt.ylabel('defined volatility []')
-    plt.savefig('DimlessTradeFracs.png')
+    plt.xlabel('trade ct []')
+    plt.ylabel('volatility []')
+
+    plt.savefig('dimlessTC.png')
     
     # testX = np.log(np.stack((volFracsMax,tradeFracsMax) ,axis=1))
     # print(testX.shape)
